@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock
 from sistema_pedidos import Pedido, Estoque, EmailService
 
 class TestPedidos(unittest.TestCase):
@@ -124,6 +125,41 @@ class TestPedidos(unittest.TestCase):
         result = self.pedido2.calcular_frete(31)
 
         self.assertEqual(result, 50)
+
+    # ---------------- TESTS CALCULAR TOTAL ----------------
+
+    def test_calcular_total(self):
+
+        def calcular_subtotal_stub():
+            return 100
+
+        def calcular_desconto_stub(cupom):
+            return 10
+
+        def calcular_frete_stub(distancia):
+            return 15
+
+        self.pedido.calcular_desconto = calcular_desconto_stub
+        self.pedido.calcular_frete = calcular_frete_stub
+        self.pedido.calcular_subtotal = calcular_subtotal_stub
+
+        result = self.pedido.calcular_total(31) # <-- o calculo dessa func ta errado
+
+        self.assertEqual(result, 75) 
+
+    # ---------------- TESTS CALCULAR TOTAL ----------------
+
+    def test_finalizar(self):
+        email_service = Mock()
+
+        email_service.enviar.return_value = True
+        
+        result = self.pedido.finalizar(email_service, 15)
+
+        self.assertEqual(result['status'], 'confirmado')
+        
+        email_service.finalizar.assert_called_once_with(email_service, 15)
+
 
 if __name__ == "__main__":
     unittest.main()
