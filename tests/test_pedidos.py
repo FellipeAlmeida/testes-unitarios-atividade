@@ -6,12 +6,14 @@ class TestPedidos(unittest.TestCase):
 
     def setUp(self):
         estoque = Estoque()
-        email_service = EmailService()
+        self.email_service = Mock()
 
-        self.pedido = Pedido(estoque, email_service)
-        self.pedido2 = Pedido(estoque, email_service)
-        self.pedido3 = Pedido(estoque, email_service)
-        self.pedido4 = Pedido(estoque, email_service)
+        self.email_service.enviar.return_value = True
+
+        self.pedido = Pedido(estoque, self.email_service)
+        self.pedido2 = Pedido(estoque, self.email_service)
+        self.pedido3 = Pedido(estoque, self.email_service)
+        self.pedido4 = Pedido(estoque, self.email_service)
 
         self.pedido.adicionar_item(1, 1) # 1 NOTEBOOK = 3000
 
@@ -134,7 +136,7 @@ class TestPedidos(unittest.TestCase):
             return 100
 
         def calcular_desconto_stub(cupom):
-            return 10
+            return 100 * 0.05
 
         def calcular_frete_stub(distancia):
             return 15
@@ -143,22 +145,20 @@ class TestPedidos(unittest.TestCase):
         self.pedido.calcular_frete = calcular_frete_stub
         self.pedido.calcular_subtotal = calcular_subtotal_stub
 
-        result = self.pedido.calcular_total(31) # <-- o calculo dessa func ta errado
+        result = self.pedido.calcular_total(31) 
 
-        self.assertEqual(result, 75) 
+        self.assertEqual(result, 110) 
 
     # ---------------- TESTS CALCULAR TOTAL ----------------
 
     def test_finalizar(self):
-        email_service = Mock()
 
-        email_service.enviar.return_value = True
-        
-        result = self.pedido.finalizar(email_service, 15)
+        total = self.pedido.calcular_total(15)
+        result = self.pedido.finalizar('teste@email.com', 15)
 
         self.assertEqual(result['status'], 'confirmado')
         
-        email_service.finalizar.assert_called_once_with(email_service, 15)
+        self.email_service.enviar.assert_called_once_with("teste@email.com", "Pedido confirmado", f"Total do pedido: R$ {total:.2f}")
 
 
 if __name__ == "__main__":

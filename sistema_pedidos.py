@@ -89,7 +89,7 @@ class Pedido:
         desconto = self.calcular_desconto(cupom)
         frete = self.calcular_frete(distancia)
 
-        return subtotal - desconto + frete # calculo errado
+        return subtotal - desconto + frete 
 
     def finalizar(self, cliente_email, distancia, cupom=None):
         if not self.itens:
